@@ -9,7 +9,6 @@ import {
   Package,
   Check,
   ArrowUpRight,
-  Sparkles,
   LucideIcon
 } from 'lucide-react';
 
@@ -29,7 +28,13 @@ const iconMap: Record<string, LucideIcon> = {
 
 export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onInquire }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const IconComponent = iconMap[service.iconName] || Code;
+  
+  const iconKey = service.iconName || (typeof service.icon === 'string' ? service.icon : '') || 'Code';
+  const IconComponent = iconMap[iconKey] || Code;
+  
+  const displayDescription = service.shortDesc || service.description || '';
+  const deliverablesList = service.deliverables || service.highlights || [];
+  const featuresList = service.features || [];
 
   return (
     <div
@@ -76,27 +81,29 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onInquire }) 
 
         {/* Description */}
         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-light mb-6">
-          {service.shortDesc}
+          {displayDescription}
         </p>
 
         {/* Features Checklist */}
-        <div className="space-y-2 mb-6">
-          <span className="text-[10px] font-mono text-cyan-400/80 uppercase tracking-widest block mb-2 font-semibold">
-            Key Deliverables & Scope:
-          </span>
-          {service.features.map((feature, idx) => (
-            <div key={idx} className="flex items-start gap-2 text-xs font-mono text-slate-300">
-              <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-              <span className="leading-tight">{feature}</span>
-            </div>
-          ))}
-        </div>
+        {featuresList.length > 0 && (
+          <div className="space-y-2 mb-6">
+            <span className="text-[10px] font-mono text-cyan-400/80 uppercase tracking-widest block mb-2 font-semibold">
+              Key Deliverables & Scope:
+            </span>
+            {featuresList.map((feature, idx) => (
+              <div key={idx} className="flex items-start gap-2 text-xs font-mono text-slate-300">
+                <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                <span className="leading-tight">{feature}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Footer / Card CTA */}
       <div className="pt-4 border-t border-cyan-500/15 flex items-center justify-between mt-2">
         <div className="flex flex-wrap gap-1">
-          {service.deliverables.slice(0, 2).map((del, i) => (
+          {deliverablesList.slice(0, 2).map((del, i) => (
             <span key={i} className="text-[9px] font-mono text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded">
               {del}
             </span>
@@ -105,7 +112,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onInquire }) 
 
         <button
           onClick={() => onInquire(service.title)}
-          className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-cyan-400 hover:text-cyan-300 group-hover:translate-x-0.5 transition-all"
+          className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-cyan-400 hover:text-cyan-300 group-hover:translate-x-0.5 transition-all cursor-pointer"
         >
           <span>Inquire</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
