@@ -13,16 +13,13 @@ import {
   LogOut,
   ShieldCheck,
   Clock,
-  CheckCircle,
   AlertCircle,
   MessageSquare,
   Phone,
   Mail,
   Trash2,
-  Filter,
   RefreshCw,
   ExternalLink,
-  ChevronRight,
   Database
 } from 'lucide-react';
 
@@ -51,11 +48,11 @@ export const ClientPortalModal: React.FC<ClientPortalModalProps> = ({ isOpen, on
       const errorObj = err as { code?: string; message?: string };
       if (errorObj?.code === 'auth/popup-blocked') {
         setIsPopupBlocked(true);
-        setAuthErrorNotice('Pop-up window was blocked by your browser. You can continue below using full-screen authentication or allow pop-ups.');
+        setAuthErrorNotice('Pop-up window was blocked by your browser. You can continue below using direct redirect.');
       } else if (errorObj?.code !== 'auth/popup-closed-by-user' && errorObj?.code !== 'auth/cancelled-popup-request') {
         setAuthErrorNotice(errorObj?.message || 'Authentication could not be completed. Please try again.');
       }
-    } finally {
+    } font-sans finally {
       setIsSigningIn(false);
     }
   };
@@ -72,6 +69,7 @@ export const ClientPortalModal: React.FC<ClientPortalModalProps> = ({ isOpen, on
     }
   };
 
+  // Real-time Firestore Listener
   useEffect(() => {
     if (!isOpen) return;
     if (!user) {
@@ -380,7 +378,7 @@ export const ClientPortalModal: React.FC<ClientPortalModalProps> = ({ isOpen, on
                         {inq.message}
                       </p>
 
-                      {/* Action Bar (WhatsApp & Direct Response) */}
+                      {/* Action Bar */}
                       <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                         <div className="flex items-center gap-2">
                           <a
@@ -434,7 +432,7 @@ export const ClientPortalModal: React.FC<ClientPortalModalProps> = ({ isOpen, on
         <div className="p-4 border-t border-cyan-500/20 bg-slate-900/60 flex items-center justify-between text-xs font-mono text-slate-400 shrink-0">
           <span className="flex items-center gap-1.5 text-cyan-400">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span>Firebase Firestore: Connected (asia-southeast1)</span>
+            <span>Firebase Firestore: Connected (default)</span>
           </span>
           <button
             onClick={onClose}
