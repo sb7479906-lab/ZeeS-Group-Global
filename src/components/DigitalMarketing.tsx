@@ -1,90 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AmbientGlow } from './AmbientGlow';
 import {
   TrendingUp,
   Search,
   Share2,
-  BarChart3,
-  Globe,
   CheckCircle,
-  Zap,
-  LineChart,
-  ArrowUpRight,
   Shield,
-  Activity
+  Activity,
+  LucideIcon
 } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+interface Metric {
+  label: string;
+  value: string;
+}
+
+interface Area {
+  id: 'seo' | 'smm' | 'campaigns';
+  title: string;
+  tagline: string;
+  desc: string;
+  metrics: Metric[];
+  features: string[];
+}
+
+const DEFAULT_AREAS: Area[] = [
+  {
+    id: 'seo',
+    title: 'Algorithmic SEO Dominance',
+    tagline: 'Organic Search Engine Visibility & Technical Indexing',
+    desc: 'Comprehensive technical on-page audits, semantic structured data markup, core web vitals optimization, and authoritative backlink acquisition strategies designed to capture high-intent organic traffic.',
+    metrics: [
+      { label: 'Technical SEO Score', value: '98/100' },
+      { label: 'Crawl Efficiency', value: '+140%' },
+      { label: 'Core Web Vitals', value: 'Grade A' }
+    ],
+    features: [
+      'Semantic JSON-LD Structured Schema Integration',
+      'High-Intent Keyword Density & Cannibalization Prevention',
+      'Server-Side Rendering (SSR) for Instant Search Indexing',
+      'Automated XML Sitemap & Canonical URL Enforcement'
+    ]
+  },
+  {
+    id: 'smm',
+    title: 'High-Impact SMM & Social Vectors',
+    tagline: 'Brand Positioning, Social Community & Audience Engagement',
+    desc: 'Targeted multi-platform social media marketing across LinkedIn, X (Twitter), Instagram, and YouTube. Crafting cyber-aesthetic creative collateral and narrative campaigns that turn viewers into loyal advocates.',
+    metrics: [
+      { label: 'Engagement Velocity', value: 'High' },
+      { label: 'Creative Conversion', value: 'Optimized' },
+      { label: 'Brand Retention', value: '92%' }
+    ],
+    features: [
+      'Platform-Specific Content Strategy & Calendar Schedules',
+      'Futuristic Motion Graphics & Cyber-Luxury Brand Assets',
+      'Community Moderation & Multi-Channel Response Pipelines',
+      'Influencer Alignment & Targeted Demographic Reach'
+    ]
+  },
+  {
+    id: 'campaigns',
+    title: 'Performance Digital Campaigns',
+    tagline: 'Multi-Channel PPC, Funnel Automation & Conversion Strategy',
+    desc: 'Data-driven paid advertising on Google Ads, Meta, and niche industry networks with continuous split-testing, remarketing pixels, and strict cost-per-acquisition (CPA) discipline.',
+    metrics: [
+      { label: 'ROAS Focus', value: 'Data-Backed' },
+      { label: 'Funnel Friction', value: 'Minimal' },
+      { label: 'Tracking Precision', value: '100% Server' }
+    ],
+    features: [
+      'Conversion Rate Optimization (CRO) Heatmap Auditing',
+      'Dynamic Landing Page Split-Testing (A/B Testing)',
+      'Server-Side Conversion API (CAPI) & Pixel Hardening',
+      'Automated Retargeting & Multi-Touch Attribution Modeling'
+    ]
+  }
+];
+
+const iconMap: Record<string, LucideIcon> = {
+  seo: Search,
+  smm: Share2,
+  campaigns: TrendingUp
+};
 
 export const DigitalMarketing: React.FC = () => {
   const [activeArea, setActiveArea] = useState<'seo' | 'smm' | 'campaigns'>('seo');
   const [auditKeyword, setAuditKeyword] = useState('enterprise-digital-solutions');
   const [isAuditing, setIsAuditing] = useState(false);
-  const [auditCompleted, setAuditCompleted] = useState(true);
+  const [areas, setAreas] = useState<Area[]>(DEFAULT_AREAS);
+
+  // Real-time Firestore stream for Digital Marketing strategies & metrics
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'company_info', 'digital_marketing'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().areas) {
+        setAreas(docSnap.data().areas as Area[]);
+      }
+    }, (error) => {
+      console.warn('Firestore digital marketing stream fallback:', error);
+    });
+
+    return () => unsub();
+  }, []);
 
   const handleSimulateAudit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsAuditing(true);
     setTimeout(() => {
       setIsAuditing(false);
-      setAuditCompleted(true);
     }, 800);
   };
-
-  const areas = [
-    {
-      id: 'seo',
-      title: 'Algorithmic SEO Dominance',
-      icon: Search,
-      tagline: 'Organic Search Engine Visibility & Technical Indexing',
-      desc: 'Comprehensive technical on-page audits, semantic structured data markup, core web vitals optimization, and authoritative backlink acquisition strategies designed to capture high-intent organic traffic.',
-      metrics: [
-        { label: 'Technical SEO Score', value: '98/100' },
-        { label: 'Crawl Efficiency', value: '+140%' },
-        { label: 'Core Web Vitals', value: 'Grade A' }
-      ],
-      features: [
-        'Semantic JSON-LD Structured Schema Integration',
-        'High-Intent Keyword Density & Cannibalization Prevention',
-        'Server-Side Rendering (SSR) for Instant Search Indexing',
-        'Automated XML Sitemap & Canonical URL Enforcement'
-      ]
-    },
-    {
-      id: 'smm',
-      title: 'High-Impact SMM & Social Vectors',
-      icon: Share2,
-      tagline: 'Brand Positioning, Social Community & Audience Engagement',
-      desc: 'Targeted multi-platform social media marketing across LinkedIn, X (Twitter), Instagram, and YouTube. Crafting cyber-aesthetic creative collateral and narrative campaigns that turn viewers into loyal advocates.',
-      metrics: [
-        { label: 'Engagement Velocity', value: 'High' },
-        { label: 'Creative Conversion', value: 'Optimized' },
-        { label: 'Brand Retention', value: '92%' }
-      ],
-      features: [
-        'Platform-Specific Content Strategy & Calendar Schedules',
-        'Futuristic Motion Graphics & Cyber-Luxury Brand Assets',
-        'Community Moderation & Multi-Channel Response Pipelines',
-        'Influencer Alignment & Targeted Demographic Reach'
-      ]
-    },
-    {
-      id: 'campaigns',
-      title: 'Performance Digital Campaigns',
-      icon: TrendingUp,
-      tagline: 'Multi-Channel PPC, Funnel Automation & Conversion Strategy',
-      desc: 'Data-driven paid advertising on Google Ads, Meta, and niche industry networks with continuous split-testing, remarketing pixels, and strict cost-per-acquisition (CPA) discipline.',
-      metrics: [
-        { label: 'ROAS Focus', value: 'Data-Backed' },
-        { label: 'Funnel Friction', value: 'Minimal' },
-        { label: 'Tracking Precision', value: '100% Server' }
-      ],
-      features: [
-        'Conversion Rate Optimization (CRO) Heatmap Auditing',
-        'Dynamic Landing Page Split-Testing (A/B Testing)',
-        'Server-Side Conversion API (CAPI) & Pixel Hardening',
-        'Automated Retargeting & Multi-Touch Attribution Modeling'
-      ]
-    }
-  ];
 
   const currentArea = areas.find((a) => a.id === activeArea) || areas[0];
 
@@ -113,14 +140,14 @@ export const DigitalMarketing: React.FC = () => {
         {/* 3 Major Area Selectors */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           {areas.map((area) => {
-            const Icon = area.icon;
+            const IconComponent = iconMap[area.id] || TrendingUp;
             const isSelected = activeArea === area.id;
             return (
               <button
                 key={area.id}
                 id={`growth-tab-${area.id}`}
-                onClick={() => setActiveArea(area.id as any)}
-                className={`p-5 rounded-2xl text-left transition-all duration-300 flex items-center gap-4 ${
+                onClick={() => setActiveArea(area.id)}
+                className={`p-5 rounded-2xl text-left transition-all duration-300 flex items-center gap-4 cursor-pointer ${
                   isSelected
                     ? 'bg-gradient-to-r from-cyan-950/90 to-[#0b193d] border-2 border-cyan-400 shadow-[0_0_25px_rgba(0,242,254,0.25)]'
                     : 'glass-card border border-cyan-500/20 hover:border-cyan-500/40 hover:bg-slate-900/60'
@@ -133,7 +160,7 @@ export const DigitalMarketing: React.FC = () => {
                       : 'bg-cyan-950/70 text-cyan-400 border-cyan-500/30'
                   }`}
                 >
-                  <Icon className="w-5 h-5 stroke-[2.2]" />
+                  <IconComponent className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <div>
                   <h3 className="font-heading text-sm sm:text-base font-bold text-white">
@@ -223,7 +250,7 @@ export const DigitalMarketing: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isAuditing}
-                    className="px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-mono hover:bg-cyan-500/30 font-semibold shrink-0"
+                    className="px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-mono hover:bg-cyan-500/30 font-semibold shrink-0 cursor-pointer disabled:opacity-50"
                   >
                     {isAuditing ? 'Testing...' : 'Test Index'}
                   </button>
