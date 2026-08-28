@@ -7,14 +7,19 @@ import {
   CircleDot,
   Zap,
   Activity,
-  AlertTriangle,
   ArrowUpRight,
-  ArrowDownRight,
   ShieldAlert,
-  Clock,
-  Layers,
   LucideIcon
 } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+interface CryptoFeature {
+  title: string;
+  tag: string;
+  desc: string;
+  icon: string;
+}
 
 const iconMap: Record<string, LucideIcon> = {
   CircleDot,
@@ -26,10 +31,25 @@ const iconMap: Record<string, LucideIcon> = {
 export const CryptoSection: React.FC = () => {
   const [activeInterval, setActiveInterval] = useState<'1m' | '15m' | '1h' | '1D'>('15m');
   const [selectedAsset, setSelectedAsset] = useState<'BTC/USDT' | 'ETH/USDT' | 'SOL/USDT'>('BTC/USDT');
+  const [features, setFeatures] = useState<CryptoFeature[]>(CRYPTO_FEATURES);
 
-  // Simulated synthetic orderbook ticks for high-tech aesthetic
+  // Simulated & Live-compatible Orderbook Ticks
   const [orderBook, setOrderBook] = useState<{ price: number; amount: number; type: 'buy' | 'sell' }[]>([]);
 
+  // Real-time Firestore Stream for Crypto Features
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'company_info', 'crypto'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().features) {
+        setFeatures(docSnap.data().features as CryptoFeature[]);
+      }
+    }, (error) => {
+      console.warn('Firestore crypto feature stream fallback:', error);
+    });
+
+    return () => unsub();
+  }, []);
+
+  // Live Orderbook Simulation / Dynamic Tickers
   useEffect(() => {
     const basePrice = selectedAsset === 'BTC/USDT' ? 64250 : selectedAsset === 'ETH/USDT' ? 3480 : 158;
     const initialOrders = [
@@ -95,7 +115,7 @@ export const CryptoSection: React.FC = () => {
 
         {/* 4 Feature Pillars */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
-          {CRYPTO_FEATURES.map((feat) => {
+          {features.map((feat) => {
             const IconComponent = iconMap[feat.icon] || BarChart2;
             return (
               <div
