@@ -2,15 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { SERVICES_DATA } from '../data/companyData';
 import { useAuth } from '../context/AuthContext';
 import { createInquiry } from '../lib/firestoreService';
-import { Send, CheckCircle2, AlertCircle, Loader2, MessageSquare, Sparkles, CloudCheck, ShieldCheck } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface ContactFormProps {
   preselectedService?: string;
   onSuccess?: () => void;
 }
 
+interface ServiceOption {
+  id: string;
+  title: string;
+  number?: string;
+}
+
 export const ContactForm: React.FC<ContactFormProps> = ({ preselectedService = '', onSuccess }) => {
   const { user } = useAuth();
+  const [servicesList, setServicesList] = useState<ServiceOption[]>(SERVICES_DATA);
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -22,6 +32,24 @@ export const ContactForm: React.FC<ContactFormProps> = ({ preselectedService = '
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [sendToWhatsApp, setSendToWhatsApp] = useState(false);
+
+  // Sync service choices in real time from Firestore if available
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'services'), (snapshot) => {
+      if (!snapshot.empty) {
+        const liveServices = snapshot.docs.map(doc => ({
+          id: doc.id,
+          title: doc.data().title || doc.id,
+          number: doc.data().number || ''
+        }));
+        setServicesList(liveServices);
+      }
+    }, (err) => {
+      console.warn('Using fallback static services list for form:', err);
+    });
+
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     if (preselectedService) {
@@ -129,21 +157,21 @@ export const ContactForm: React.FC<ContactFormProps> = ({ preselectedService = '
             Transmission Received!
           </h4>
           <p className="text-xs sm:text-sm text-slate-300 max-w-sm mx-auto font-light leading-relaxed">
-            Thank you, <strong className="text-cyan-300">{formData.fullName}</strong>. Muhammad Shazil Attari and Muhammad Saad Attari have been notified and will contact you promptly.
+            Thank you, <strong className="text-cyan-300">{formData.fullName}</strong>. Technical leadership has been notified and will contact you promptly.
           </p>
           <button
             type="button"
             onClick={() => {
               setFormData({
-                fullName: '',
-                email: '',
+                fullName: user?.displayName || '',
+                email: user?.email || '',
                 phone: '',
                 service: 'Web Development',
                 message: ''
               });
               setStatus('idle');
             }}
-            className="px-5 py-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-cyan-300 text-xs font-mono hover:bg-cyan-950/50"
+            className="px-5 py-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-cyan-300 text-xs font-mono hover:bg-cyan-950/50 transition-colors"
           >
             Send Another Inquiry
           </button>
@@ -210,9 +238,9 @@ export const ContactForm: React.FC<ContactFormProps> = ({ preselectedService = '
               onChange={(e) => setFormData({ ...formData, service: e.target.value })}
               className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-cyan-500/25 text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono"
             >
-              {SERVICES_DATA.map((s) => (
+              {servicesList.map((s) => (
                 <option key={s.id} value={s.title} className="bg-[#060e22] text-white">
-                  {s.number} — {s.title}
+                  {s.number ? `${s.number} — ` : ''}{s.title}
                 </option>
               ))}
               <option value="Custom Digital Architecture" className="bg-[#060e22] text-white">
