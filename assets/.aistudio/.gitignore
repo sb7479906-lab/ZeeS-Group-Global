@@ -1,1 +1,6 @@
-*
+# AI Studio local assets & metadata
+.aistudio/
+*.log
+.DS_Store
+node_modules/
+dist/
