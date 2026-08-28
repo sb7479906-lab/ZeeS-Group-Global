@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Header } from './components/Header';
@@ -21,64 +21,70 @@ import { ScheduleConsultationModal } from './components/ScheduleConsultationModa
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('home');
+  
+  // State to track current visible section in center page (Default: 'home')
+  const [activeTab, setActiveTab] = useState<string>('home');
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
   const [preselectedService, setPreselectedService] = useState('');
 
-  // Active section scroll spy
-  useEffect(() => {
-    const sectionIds = [
-      'home',
-      'about',
-      'services',
-      'growth-engine',
-      'portfolio',
-      'technology',
-      'global-advantage',
-      'crypto-market',
-      'contact'
-    ];
-
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 200;
-      for (const id of sectionIds) {
-        const el = document.getElementById(id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(id);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Function to switch visible center view
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleOpenContact = () => {
-    const contactEl = document.getElementById('contact');
-    if (contactEl) {
-      contactEl.scrollIntoView({ behavior: 'smooth' });
-    }
+    handleTabChange('contact');
   };
 
   const handleOpenContactWithService = (serviceName: string) => {
     setPreselectedService(serviceName);
-    const contactEl = document.getElementById('contact');
-    if (contactEl) {
-      contactEl.scrollIntoView({ behavior: 'smooth' });
+    handleTabChange('contact');
+  };
+
+  // Render dynamic view based on selected navigation tab
+  const renderActiveSection = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <Hero
+            onOpenContact={handleOpenContact}
+            onOpenConsultation={() => setIsConsultationOpen(true)}
+          />
+        );
+      case 'about':
+        return <About />;
+      case 'services':
+        return <Services onOpenContactWithService={handleOpenContactWithService} />;
+      case 'growth-engine':
+        return <DigitalMarketing />;
+      case 'portfolio':
+        return <Portfolio onOpenContactWithService={handleOpenContactWithService} />;
+      case 'technology':
+        return <Technology />;
+      case 'global-advantage':
+        return <GlobalAdvantage />;
+      case 'crypto-market':
+        return <CryptoSection />;
+      case 'contact':
+        return <Contact preselectedService={preselectedService} />;
+      default:
+        return (
+          <Hero
+            onOpenContact={handleOpenContact}
+            onOpenConsultation={() => setIsConsultationOpen(true)}
+          />
+        );
     }
   };
 
   return (
     <AuthProvider>
-      <div className="relative min-h-screen bg-[#020713] text-slate-100 selection:bg-cyan-400 selection:text-black">
-        {/* 1. Loading Screen */}
+      <div className="relative min-h-screen bg-[#020713] text-slate-100 selection:bg-cyan-400 selection:text-black flex flex-col justify-between">
+        {/* 1. Initial Loading Screen */}
         {isLoading && (
           <LoadingScreen onComplete={() => setIsLoading(false)} />
         )}
@@ -91,62 +97,41 @@ export default function App() {
 
         {/* 2. Fixed Header */}
         <Header
-          activeSection={activeSection}
+          activeSection={activeTab}
           onOpenContact={handleOpenContact}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           isMobileMenuOpen={isMobileMenuOpen}
           onOpenPortal={() => setIsPortalOpen(true)}
+          onNavigate={handleTabChange}
         />
 
-        {/* 3. Desktop Vertical Sidebar */}
-        <Sidebar activeSection={activeSection} />
+        {/* 3. Desktop Vertical Sidebar Nav */}
+        <Sidebar 
+          activeSection={activeTab} 
+          onNavigate={handleTabChange}
+        />
 
         {/* 4. Mobile Navigation Drawer & Bottom Bar */}
         <MobileNav
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
-          activeSection={activeSection}
+          activeSection={activeTab}
           onOpenContact={handleOpenContact}
           onOpenPortal={() => setIsPortalOpen(true)}
+          onNavigate={handleTabChange}
         />
 
-        {/* Main Center Content Sections Flow */}
-        <main id="main-content" className="relative z-10 w-full overflow-hidden">
-          {/* 04. Hero */}
-          <Hero
-            onOpenContact={handleOpenContact}
-            onOpenConsultation={() => setIsConsultationOpen(true)}
-          />
-
-          {/* 05. About ZeeS Group Global */}
-          <About />
-
-          {/* 06. Services */}
-          <Services onOpenContactWithService={handleOpenContactWithService} />
-
-          {/* 07. Digital Growth Engine (SEO, SMM, Marketing) */}
-          <DigitalMarketing />
-
-          {/* 08. Portfolio */}
-          <Portfolio onOpenContactWithService={handleOpenContactWithService} />
-
-          {/* 09. Technology Stack */}
-          <Technology />
-
-          {/* 10. Global Advantage */}
-          <GlobalAdvantage />
-
-          {/* 11. Digital Market & Crypto Trading */}
-          <CryptoSection />
-
-          {/* 12. Contact / Direct Inquiry */}
-          <Contact preselectedService={preselectedService} />
+        {/* 5. Dynamic Center Screen Container */}
+        <main id="main-content" className="relative z-10 w-full flex-1 pt-20 pb-12 transition-all duration-300">
+          <div key={activeTab} className="animate-in fade-in zoom-in-95 duration-300">
+            {renderActiveSection()}
+          </div>
         </main>
 
-        {/* 13. Footer */}
-        <Footer onOpenContact={handleOpenContact} />
+        {/* 6. Footer */}
+        <Footer onOpenContact={handleOpenContact} onNavigate={handleTabChange} />
 
-        {/* 14. Modals */}
+        {/* 7. Modals */}
         <ClientPortalModal
           isOpen={isPortalOpen}
           onClose={() => setIsPortalOpen(false)}
