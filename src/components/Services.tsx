@@ -1,14 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SERVICES_DATA } from '../data/companyData';
 import { ServiceCard } from './ServiceCard';
 import { AmbientGlow } from './AmbientGlow';
-import { Layers, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Layers, ArrowRight, Sparkles } from 'lucide-react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { ServiceItem } from '../types';
 
 interface ServicesProps {
   onOpenContactWithService: (serviceName: string) => void;
 }
 
 export const Services: React.FC<ServicesProps> = ({ onOpenContactWithService }) => {
+  const [servicesList, setServicesList] = useState<ServiceItem[]>(SERVICES_DATA);
+
+  // Real-time listener for Services from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'services'), (snapshot) => {
+      if (!snapshot.empty) {
+        const liveServices: ServiceItem[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            number: data.number || '00',
+            title: data.title || docSnap.id,
+            tagline: data.tagline || '',
+            description: data.description || '',
+            icon: data.icon || 'Code',
+            features: data.features || [],
+            highlights: data.highlights || []
+          };
+        });
+        setServicesList(liveServices);
+      }
+    }, (error) => {
+      console.warn('Firestore services stream fallback:', error);
+    });
+
+    return () => unsub();
+  }, []);
+
   return (
     <section id="services" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <AmbientGlow variant="section" position="center" />
@@ -33,7 +64,7 @@ export const Services: React.FC<ServicesProps> = ({ onOpenContactWithService }) 
 
         {/* 6 Grid Service Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-16">
-          {SERVICES_DATA.map((service) => (
+          {servicesList.map((service) => (
             <ServiceCard
               key={service.id}
               service={service}
@@ -60,7 +91,7 @@ export const Services: React.FC<ServicesProps> = ({ onOpenContactWithService }) 
 
           <button
             onClick={() => onOpenContactWithService('Custom Enterprise Project')}
-            className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-mono font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(0,242,254,0.3)] hover:shadow-[0_0_30px_rgba(0,242,254,0.6)] transition-all flex items-center gap-2"
+            className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-mono font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(0,242,254,0.3)] hover:shadow-[0_0_30px_rgba(0,242,254,0.6)] transition-all flex items-center gap-2 cursor-pointer"
           >
             <span>Request Custom Architecture</span>
             <ArrowRight className="w-4 h-4" />
