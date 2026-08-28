@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TECH_STACK } from '../data/companyData';
 import { AmbientGlow } from './AmbientGlow';
 import {
@@ -15,9 +15,18 @@ import {
   Box,
   GitBranch,
   Cloud,
-  CheckCircle2,
   LucideIcon
 } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+interface TechItem {
+  name: string;
+  category: string;
+  description: string;
+  icon: string;
+  proficiency: number;
+}
 
 const iconMap: Record<string, LucideIcon> = {
   Atom,
@@ -39,10 +48,24 @@ const CATEGORIES = ['ALL', 'Frontend', 'Backend & Cloud', 'AI & Data', 'Infrastr
 
 export const Technology: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [techStack, setTechStack] = useState<TechItem[]>(TECH_STACK);
+
+  // Real-time Firestore stream for Tech Stack items
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'company_info', 'tech_stack'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().items) {
+        setTechStack(docSnap.data().items as TechItem[]);
+      }
+    }, (error) => {
+      console.warn('Firestore tech stack stream fallback:', error);
+    });
+
+    return () => unsub();
+  }, []);
 
   const filteredTech = selectedCategory === 'ALL'
-    ? TECH_STACK
-    : TECH_STACK.filter((t) => t.category === selectedCategory);
+    ? techStack
+    : techStack.filter((t) => t.category === selectedCategory);
 
   return (
     <section id="technology" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -75,7 +98,7 @@ export const Technology: React.FC = () => {
                 key={cat}
                 id={`tech-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold tracking-wider transition-all duration-200 ${
+                className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold tracking-wider transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? 'bg-gradient-to-r from-cyan-400 to-sky-400 text-black border border-cyan-300 shadow-[0_0_18px_rgba(0,242,254,0.35)] scale-105'
                     : 'glass-card text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40 hover:bg-slate-900/80 border border-cyan-500/20'
