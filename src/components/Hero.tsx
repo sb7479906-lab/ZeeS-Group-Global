@@ -1,15 +1,75 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { ZeeSLogo } from './ZeeSLogo';
 import { AmbientGlow } from './AmbientGlow';
-import { ArrowRight, Sparkles, Globe, Shield, Cpu, Users, ChevronDown } from 'lucide-react';
+import { ArrowRight, Sparkles, Globe, Shield, Cpu, Users, ChevronDown, LucideIcon } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+interface MetricPillar {
+  title: string;
+  desc: string;
+  icon: string;
+}
+
+interface HeroData {
+  statusText: string;
+  titlePrimary: string;
+  titleSecondary: string;
+  slogan: string;
+  description: string;
+  pillars: MetricPillar[];
+}
+
+const DEFAULT_HERO_DATA: HeroData = {
+  statusText: 'GLOBAL DIGITAL ECOSYSTEM & INNOVATION',
+  titlePrimary: 'NEXT-GEN DIGITAL SOLUTIONS',
+  titleSecondary: 'WEALTH MANAGEMENT',
+  slogan: 'Your Partner for Global Success',
+  description: 'Building modern digital experiences, scalable technology solutions and innovative global opportunities. From high-velocity web platforms and automated e-commerce to algorithmic market intelligence.',
+  pillars: [
+    { title: 'Digital Solutions', desc: 'Web & App Architecture', icon: 'Cpu' },
+    { title: 'Global Vision', desc: 'Cross-Border Scalability', icon: 'Globe' },
+    { title: 'Technology Driven', desc: 'Modern High-Speed Stack', icon: 'Shield' },
+    { title: 'Customer Focused', desc: 'Dedicated Partnerships', icon: 'Users' }
+  ]
+};
+
+const iconMap: Record<string, LucideIcon> = {
+  Cpu,
+  Globe,
+  Shield,
+  Users
+};
 
 interface HeroProps {
   onOpenContact: () => void;
   onOpenConsultation?: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onOpenContact, onOpenConsultation }) => {
+export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
   const globeCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [heroData, setHeroData] = useState<HeroData>(DEFAULT_HERO_DATA);
+
+  // Real-time Firestore listener for Hero dynamic content
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'company_info', 'hero'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as Partial<HeroData>;
+        setHeroData({
+          statusText: data.statusText || DEFAULT_HERO_DATA.statusText,
+          titlePrimary: data.titlePrimary || DEFAULT_HERO_DATA.titlePrimary,
+          titleSecondary: data.titleSecondary || DEFAULT_HERO_DATA.titleSecondary,
+          slogan: data.slogan || DEFAULT_HERO_DATA.slogan,
+          description: data.description || DEFAULT_HERO_DATA.description,
+          pillars: data.pillars || DEFAULT_HERO_DATA.pillars
+        });
+      }
+    }, (error) => {
+      console.warn('Firestore hero stream fallback to static defaults:', error);
+    });
+
+    return () => unsub();
+  }, []);
 
   // High-tech interactive digital globe rendering
   useEffect(() => {
@@ -119,7 +179,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact, onOpenConsultation })
       // Draw connecting network lines for close points
       for (let i = 0; i < projected.length; i++) {
         const p1 = projected[i];
-        if (p1.z < 0) continue; // only connect front facing points for cleaner visuals
+        if (p1.z < 0) continue; // connect front facing points only
 
         for (let j = i + 1; j < projected.length; j++) {
           const p2 = projected[j];
@@ -192,7 +252,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact, onOpenConsultation })
         {/* Top Status Pill */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#060e22]/90 border border-cyan-500/30 text-cyan-300 text-xs font-mono tracking-wider shadow-[0_0_20px_rgba(0,242,254,0.15)] mb-6 animate-pulse-glow">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-          <span className="font-semibold">GLOBAL DIGITAL ECOSYSTEM & INNOVATION</span>
+          <span className="font-semibold">{heroData.statusText}</span>
         </div>
 
         {/* Center Logo with Cyber Aura */}
@@ -202,31 +262,30 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact, onOpenConsultation })
 
         {/* Main Title Banner */}
         <h2 className="font-heading text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-wide uppercase text-slate-100 max-w-4xl leading-tight mb-4">
-          <span className="metallic-text">NEXT-GEN DIGITAL SOLUTIONS</span>{' '}
+          <span className="metallic-text">{heroData.titlePrimary}</span>{' '}
           <span className="text-cyan-400">&</span>{' '}
-          <span className="cyber-gradient-text">WEALTH MANAGEMENT</span>
+          <span className="cyber-gradient-text">{heroData.titleSecondary}</span>
         </h2>
 
         {/* Supporting Slogan */}
         <p className="font-display text-lg sm:text-xl font-semibold text-cyan-300/90 tracking-wide mb-4 flex items-center justify-center gap-2">
           <Sparkles className="w-4 h-4 text-cyan-400" />
-          <span>Your Partner for Global Success</span>
+          <span>{heroData.slogan}</span>
           <Sparkles className="w-4 h-4 text-cyan-400" />
         </p>
 
         {/* Supporting Description */}
         <p className="text-sm sm:text-base text-slate-300 max-w-2xl font-light leading-relaxed mb-10 text-balance">
-          Building modern digital experiences, scalable technology solutions and innovative global opportunities.
-          From high-velocity web platforms and automated e-commerce to algorithmic market intelligence.
+          {heroData.description}
         </p>
 
-        {/* Action Buttons (3 Buttons as requested) */}
+        {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5 w-full max-w-lg mb-14">
           {/* 1. Explore Services */}
           <a
             href="#services"
             id="hero-explore-services-btn"
-            className="group relative overflow-hidden px-6 py-3.5 rounded-xl text-xs sm:text-sm font-mono font-bold tracking-wider text-black bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400 hover:from-cyan-300 hover:to-sky-200 shadow-[0_0_25px_rgba(0,242,254,0.4)] hover:shadow-[0_0_35px_rgba(0,242,254,0.7)] transition-all duration-300 flex items-center gap-2 active:scale-95"
+            className="group relative overflow-hidden px-6 py-3.5 rounded-xl text-xs sm:text-sm font-mono font-bold tracking-wider text-black bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400 hover:from-cyan-300 hover:to-sky-200 shadow-[0_0_25px_rgba(0,242,254,0.4)] hover:shadow-[0_0_35px_rgba(0,242,254,0.7)] transition-all duration-300 flex items-center gap-2 active:scale-95 cursor-pointer"
           >
             <span>Explore Services</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -236,7 +295,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact, onOpenConsultation })
           <a
             href="#portfolio"
             id="hero-view-portfolio-btn"
-            className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-mono font-semibold tracking-wider text-slate-200 border border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/40 hover:border-cyan-400 hover:text-cyan-300 shadow-[0_0_15px_rgba(0,242,254,0.1)] hover:shadow-[0_0_25px_rgba(0,242,254,0.25)] transition-all duration-300 flex items-center gap-2"
+            className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-mono font-semibold tracking-wider text-slate-200 border border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/40 hover:border-cyan-400 hover:text-cyan-300 shadow-[0_0_15px_rgba(0,242,254,0.1)] hover:shadow-[0_0_25px_rgba(0,242,254,0.25)] transition-all duration-300 flex items-center gap-2 cursor-pointer"
           >
             <span>View Portfolio</span>
           </a>
@@ -245,21 +304,16 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact, onOpenConsultation })
           <button
             onClick={onOpenContact}
             id="hero-contact-us-btn"
-            className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-mono font-semibold tracking-wider text-cyan-300 border border-cyan-500/20 bg-[#060e22]/90 hover:bg-cyan-500/20 hover:border-cyan-500/60 transition-all duration-300 flex items-center gap-2"
+            className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-mono font-semibold tracking-wider text-cyan-300 border border-cyan-500/20 bg-[#060e22]/90 hover:bg-cyan-500/20 hover:border-cyan-500/60 transition-all duration-300 flex items-center gap-2 cursor-pointer"
           >
             <span>Contact Us</span>
           </button>
         </div>
 
-        {/* Hero Glass Metric Pillars (4 Pill Cards as requested) */}
+        {/* Hero Glass Metric Pillars */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 w-full max-w-4xl">
-          {[
-            { title: 'Digital Solutions', desc: 'Web & App Architecture', icon: Cpu },
-            { title: 'Global Vision', desc: 'Cross-Border Scalability', icon: Globe },
-            { title: 'Technology Driven', desc: 'Modern High-Speed Stack', icon: Shield },
-            { title: 'Customer Focused', desc: 'Dedicated Partnerships', icon: Users }
-          ].map((pillar, idx) => {
-            const Icon = pillar.icon;
+          {heroData.pillars.map((pillar, idx) => {
+            const IconComponent = iconMap[pillar.icon] || Cpu;
             return (
               <div
                 key={idx}
@@ -271,7 +325,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact, onOpenConsultation })
                 
                 <div className="flex items-center gap-2.5 mb-1.5">
                   <div className="p-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 group-hover:scale-110 transition-transform">
-                    <Icon className="w-4 h-4" />
+                    <IconComponent className="w-4 h-4" />
                   </div>
                   <h3 className="font-heading text-xs sm:text-sm font-bold text-white tracking-wide">
                     {pillar.title}
@@ -290,7 +344,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact, onOpenConsultation })
       <a
         href="#about"
         id="scroll-down-indicator"
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-400 hover:text-cyan-400 transition-colors opacity-70 hover:opacity-100"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-400 hover:text-cyan-400 transition-colors opacity-70 hover:opacity-100 cursor-pointer"
         aria-label="Scroll to About Section"
       >
         <span className="text-[10px] font-mono tracking-widest uppercase text-cyan-400/80">SCROLL</span>
