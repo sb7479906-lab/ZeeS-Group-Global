@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ZeeSLogo } from './ZeeSLogo';
 import { NAVIGATION_ITEMS, CONTACT_PERSONS } from '../data/companyData';
 import {
@@ -17,6 +17,16 @@ import {
   ArrowUpRight,
   LucideIcon
 } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+interface ContactPerson {
+  name: string;
+  role?: string;
+  phone: string;
+  rawPhone?: string;
+  whatsappUrl: string;
+}
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -45,6 +55,21 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   onOpenContact,
   onOpenPortal
 }) => {
+  const [contacts, setContacts] = useState<ContactPerson[]>(CONTACT_PERSONS);
+
+  // Sync direct contact numbers in real-time from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'company_info', 'contacts'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().persons) {
+        setContacts(docSnap.data().persons as ContactPerson[]);
+      }
+    }, (error) => {
+      console.warn('Firestore mobile nav contact stream fallback:', error);
+    });
+
+    return () => unsub();
+  }, []);
+
   // Prevent background scroll when menu is open
   useEffect(() => {
     if (isOpen) {
@@ -81,7 +106,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             <a
               key={item.id}
               href={item.href}
-              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all duration-200 cursor-pointer ${
                 isActive
                   ? 'text-cyan-300 font-semibold scale-105'
                   : 'text-slate-400 hover:text-slate-200'
@@ -107,7 +132,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         {/* Backdrop blur */}
         <div
           onClick={onClose}
-          className="absolute inset-0 bg-black/80 backdrop-blur-md"
+          className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-pointer"
         />
 
         {/* Drawer Panel */}
@@ -124,7 +149,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               <button
                 onClick={onClose}
                 id="close-mobile-menu-btn"
-                className="p-2 rounded-lg border border-cyan-500/30 text-slate-300 hover:text-cyan-300 hover:bg-cyan-950/40"
+                className="p-2 rounded-lg border border-cyan-500/30 text-slate-300 hover:text-cyan-300 hover:bg-cyan-950/40 cursor-pointer"
                 aria-label="Close Menu"
               >
                 <X className="w-5 h-5" />
@@ -144,7 +169,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                     key={item.id}
                     href={item.href}
                     onClick={onClose}
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium tracking-wide transition-all ${
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium tracking-wide transition-all cursor-pointer ${
                       isActive
                         ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(0,242,254,0.2)]'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
@@ -168,7 +193,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             </span>
 
             <div className="grid grid-cols-1 gap-2.5">
-              {CONTACT_PERSONS.map((person) => (
+              {contacts.map((person) => (
                 <div
                   key={person.name}
                   className="p-3 rounded-xl bg-slate-900/80 border border-cyan-500/20 text-xs flex items-center justify-between"
@@ -179,8 +204,8 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <a
-                      href={`tel:${person.rawPhone}`}
-                      className="p-2 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/20"
+                      href={`tel:${person.rawPhone || person.phone}`}
+                      className="p-2 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/20 cursor-pointer"
                       aria-label={`Call ${person.name}`}
                     >
                       <Phone className="w-3.5 h-3.5" />
@@ -189,7 +214,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                       href={person.whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
+                      className="p-2 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 cursor-pointer"
                       aria-label={`WhatsApp ${person.name}`}
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
@@ -205,7 +230,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                   onClose();
                   onOpenPortal();
                 }}
-                className="flex-1 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/30 text-cyan-300 font-mono text-xs hover:bg-cyan-950/40 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/30 text-cyan-300 font-mono text-xs hover:bg-cyan-950/40 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Client Portal</span>
               </button>
@@ -214,7 +239,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                   onClose();
                   onOpenContact();
                 }}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-mono font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(0,242,254,0.3)] flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-mono font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(0,242,254,0.3)] flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Contact Us</span>
                 <ArrowUpRight className="w-4 h-4" />
