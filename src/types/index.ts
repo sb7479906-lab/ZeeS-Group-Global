@@ -9,33 +9,42 @@ export interface ServiceItem {
   id: string;
   number: string;
   title: string;
-  shortDesc: string;
-  fullDesc: string;
-  iconName: string;
+  shortDesc?: string;
+  description?: string;
+  fullDesc?: string;
+  iconName?: string;
+  icon?: string;
   features: string[];
-  deliverables: string[];
+  deliverables?: string[];
+  highlights?: string[];
   badge?: string;
+  tagline?: string;
 }
 
 export interface PortfolioProject {
   id: string;
   title: string;
-  category: 'WEB' | 'E-COMMERCE' | 'BUSINESS' | 'AI' | 'AUTOMATION' | 'OTHER';
-  tagline: string;
-  description: string;
-  longDescription: string;
+  category: 'WEB' | 'E-COMMERCE' | 'BUSINESS' | 'AI' | 'AUTOMATION' | 'OTHER' | string;
+  tagline?: string;
+  description?: string;
+  shortDescription?: string;
+  longDescription?: string;
+  fullDescription?: string;
   image: string;
-  techStack: string[];
+  techStack?: string[];
+  tags?: string[];
   features: string[];
   metrics: { label: string; value: string }[];
   isDemo?: boolean;
   liveUrl?: string;
   githubUrl?: string;
+  client?: string;
+  duration?: string;
 }
 
 export interface TechItem {
   name: string;
-  category: 'Frontend' | 'Backend & Cloud' | 'AI & Data' | 'Infrastructure & DevOps';
+  category: 'Frontend' | 'Backend & Cloud' | 'AI & Data' | 'Infrastructure & DevOps' | string;
   icon: string;
   proficiency: number;
   description: string;
@@ -52,9 +61,9 @@ export interface AdvantageItem {
 
 export interface ContactPerson {
   name: string;
-  role: string;
+  role?: string;
   phone: string;
-  rawPhone: string;
+  rawPhone?: string;
   whatsappUrl: string;
   email?: string;
 }
