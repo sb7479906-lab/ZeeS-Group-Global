@@ -1,18 +1,26 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { initializeFirestore, getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA0a7L8pazHtWb_2h8rK9RfsPxYKlKCBPw",
+  authDomain: "zeesg-roup-global.firebaseapp.com",
+  projectId: "zeesg-roup-global",
+  storageBucket: "zeesg-roup-global.firebasestorage.app",
+  messagingSenderId: "653798645674",
+  appId: "1:653798645674:web:8a83861430c65a5da915d3",
+  measurementId: "G-R7NQCC4CHY"
+};
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// CRITICAL: Must pass firebaseConfig.firestoreDatabaseId with auto-detect long polling for robust cloud connection
 let dbInstance;
 try {
   dbInstance = initializeFirestore(app, {
     experimentalAutoDetectLongPolling: true,
-  }, firebaseConfig.firestoreDatabaseId);
+  });
 } catch {
-  dbInstance = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  dbInstance = getFirestore(app);
 }
 
 export const db = dbInstance;
@@ -20,4 +28,4 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
 export { signInWithPopup, signOut };
-
+export default app;
