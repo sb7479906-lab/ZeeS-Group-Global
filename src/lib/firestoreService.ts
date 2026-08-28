@@ -6,9 +6,7 @@ import {
   deleteDoc,
   onSnapshot,
   query,
-  where,
-  orderBy,
-  getDocs
+  where
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { handleFirestoreError, OperationType } from './errorHandling';
@@ -59,7 +57,6 @@ export async function createInquiry(data: Omit<InquiryRecord, 'id'>): Promise<st
     return newDocRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, `${collectionPath}/${newDocRef.id}`);
-    throw error;
   }
 }
 
@@ -83,7 +80,6 @@ export async function createConsultation(data: Omit<ConsultationRecord, 'id'>): 
     return newDocRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, `${collectionPath}/${newDocRef.id}`);
-    throw error;
   }
 }
 
@@ -130,7 +126,6 @@ export async function updateInquiryStatus(
     await updateDoc(doc(db, 'inquiries', inquiryId), { status });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
-    throw error;
   }
 }
 
@@ -141,6 +136,5 @@ export async function deleteInquiryRecord(inquiryId: string): Promise<void> {
     await deleteDoc(doc(db, 'inquiries', inquiryId));
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, path);
-    throw error;
   }
 }
