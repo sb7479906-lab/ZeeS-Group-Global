@@ -14,28 +14,18 @@ service cloud.firestore {
 
     // 1. Inquiries Collection Rules
     match /inquiries/{inquiryId} {
-      // Anyone can submit an inquiry (Public Write)
-      allow create: if request.resource.data.fullName is string
-                    && request.resource.data.email is string
-                    && request.resource.data.phone is string
-                    && request.resource.data.service is string
-                    && request.resource.data.message is string
+      // Anyone can submit an inquiry (Public Write with required fields check)
+      allow create: if request.resource.data.keys().hasAll(['fullName', 'email', 'phone', 'service', 'message', 'status'])
                     && request.resource.data.status == 'pending';
 
-      // Only authenticated users can read their own inquiries, or full access if admin
-      allow read: if isAuthenticated();
-      
-      // Update/Delete restricted (Admin panel access)
-      allow update, delete: if isAuthenticated();
+      // Only authenticated users/admins can read, update, or delete inquiries
+      allow read, update, delete: if isAuthenticated();
     }
 
     // 2. Consultations Collection Rules
     match /consultations/{consultationId} {
       // Anyone can book a consultation
-      allow create: if request.resource.data.fullName is string
-                    && request.resource.data.email is string
-                    && request.resource.data.phone is string
-                    && request.resource.data.preferredTopic is string
+      allow create: if request.resource.data.keys().hasAll(['fullName', 'email', 'phone', 'preferredTopic', 'status'])
                     && request.resource.data.status == 'scheduled';
 
       // Authenticated read/update/delete
