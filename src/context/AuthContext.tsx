@@ -27,6 +27,12 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
 });
 
+// Designated Admin Accounts
+const ADMIN_EMAILS = [
+  'sb7479906@gmail.com',
+  'starssaad4488@gmail.com'
+];
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const isAdmin = Boolean(user && user.email === 'sb7479906@gmail.com');
+  const isAdmin = Boolean(user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()));
 
   return (
     <AuthContext.Provider
