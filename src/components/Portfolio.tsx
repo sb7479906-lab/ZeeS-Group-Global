@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PORTFOLIO_PROJECTS } from '../data/companyData';
 import { PortfolioProject } from '../types';
 import { PortfolioCard } from './PortfolioCard';
 import { PortfolioModal } from './PortfolioModal';
 import { AmbientGlow } from './AmbientGlow';
-import { Briefcase, Filter, Sparkles } from 'lucide-react';
+import { Briefcase } from 'lucide-react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 const CATEGORIES = ['ALL', 'WEB', 'E-COMMERCE', 'BUSINESS', 'AI', 'AUTOMATION', 'OTHER'] as const;
 
@@ -15,11 +17,43 @@ interface PortfolioProps {
 export const Portfolio: React.FC<PortfolioProps> = ({ onOpenContactWithService }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [activeProject, setActiveProject] = useState<PortfolioProject | null>(null);
+  const [projectsList, setProjectsList] = useState<PortfolioProject[]>(PORTFOLIO_PROJECTS);
+
+  // Real-time Firestore stream for Projects collection
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'projects'), (snapshot) => {
+      if (!snapshot.empty) {
+        const liveProjects: PortfolioProject[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            title: data.title || docSnap.id,
+            category: data.category || 'WEB',
+            shortDescription: data.shortDescription || '',
+            fullDescription: data.fullDescription || '',
+            image: data.image || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80',
+            tags: data.tags || [],
+            features: data.features || [],
+            metrics: data.metrics || [],
+            client: data.client || 'Enterprise Partner',
+            duration: data.duration || 'Complete',
+            liveUrl: data.liveUrl || '',
+            githubUrl: data.githubUrl || ''
+          };
+        });
+        setProjectsList(liveProjects);
+      }
+    }, (error) => {
+      console.warn('Firestore portfolio projects stream fallback:', error);
+    });
+
+    return () => unsub();
+  }, []);
 
   const filteredProjects = useMemo(() => {
-    if (selectedCategory === 'ALL') return PORTFOLIO_PROJECTS;
-    return PORTFOLIO_PROJECTS.filter((p) => p.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'ALL') return projectsList;
+    return projectsList.filter((p) => p.category === selectedCategory);
+  }, [selectedCategory, projectsList]);
 
   return (
     <section id="portfolio" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -43,7 +77,7 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onOpenContactWithService }
           </p>
         </div>
 
-        {/* Category Filters (ALL, WEB, E-COMMERCE, BUSINESS, AI, AUTOMATION, OTHER) */}
+        {/* Category Filters */}
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-14">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat;
@@ -52,7 +86,7 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onOpenContactWithService }
                 key={cat}
                 id={`filter-btn-${cat.toLowerCase()}`}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold tracking-wider transition-all duration-200 ${
+                className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold tracking-wider transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? 'bg-gradient-to-r from-cyan-400 to-sky-400 text-black border border-cyan-300 shadow-[0_0_18px_rgba(0,242,254,0.4)] scale-105'
                     : 'glass-card text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40 hover:bg-slate-900/80 border border-cyan-500/20'
