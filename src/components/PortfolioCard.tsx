@@ -1,6 +1,6 @@
 import React from 'react';
 import { PortfolioProject } from '../types';
-import { ArrowUpRight, Layers, ExternalLink, Sparkles } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 interface PortfolioCardProps {
   project: PortfolioProject;
@@ -8,6 +8,9 @@ interface PortfolioCardProps {
 }
 
 export const PortfolioCard: React.FC<PortfolioCardProps> = ({ project, onSelect }) => {
+  const displayDescription = project.shortDescription || project.description || '';
+  const techStackList = project.techStack || project.tags || [];
+
   return (
     <div
       id={`portfolio-card-${project.id}`}
@@ -50,14 +53,14 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ project, onSelect 
           </h3>
 
           <p className="text-xs text-slate-300 font-light leading-relaxed mb-4 line-clamp-2">
-            {project.description}
+            {displayDescription}
           </p>
         </div>
 
         <div>
           {/* Tech stack pill tags */}
           <div className="flex flex-wrap gap-1.5 mb-4">
-            {project.techStack.slice(0, 3).map((tech, i) => (
+            {techStackList.slice(0, 3).map((tech, i) => (
               <span
                 key={i}
                 className="text-[10px] font-mono text-cyan-300/90 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded"
@@ -65,9 +68,9 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ project, onSelect 
                 {tech}
               </span>
             ))}
-            {project.techStack.length > 3 && (
+            {techStackList.length > 3 && (
               <span className="text-[10px] font-mono text-slate-400 px-1.5 py-0.5">
-                +{project.techStack.length - 3}
+                +{techStackList.length - 3}
               </span>
             )}
           </div>
