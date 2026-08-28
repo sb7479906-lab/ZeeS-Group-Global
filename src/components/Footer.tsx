@@ -1,17 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ZeeSLogo } from './ZeeSLogo';
 import { NAVIGATION_ITEMS, SERVICES_DATA, CONTACT_PERSONS } from '../data/companyData';
 import { LegalModals } from './LegalModals';
 import {
   Phone,
   MessageCircle,
-  Mail,
-  ArrowUpRight,
-  Shield,
-  Heart,
   Globe2,
   ChevronUp
 } from 'lucide-react';
+import { doc, collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+interface ContactPerson {
+  name: string;
+  role?: string;
+  phone: string;
+  whatsappUrl: string;
+}
+
+interface ServiceItem {
+  id: string;
+  title: string;
+}
 
 interface FooterProps {
   onOpenContact: () => void;
@@ -19,6 +29,40 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
   const [legalModal, setLegalModal] = useState<'privacy' | 'terms' | 'disclaimer' | null>(null);
+  const [contacts, setContacts] = useState<ContactPerson[]>(CONTACT_PERSONS);
+  const [services, setServices] = useState<ServiceItem[]>(
+    SERVICES_DATA.map((s) => ({ id: s.id, title: s.title }))
+  );
+
+  // Real-time listener for direct contacts from Firestore
+  useEffect(() => {
+    const unsubContacts = onSnapshot(doc(db, 'company_info', 'contacts'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().persons) {
+        setContacts(docSnap.data().persons as ContactPerson[]);
+      }
+    }, (err) => {
+      console.warn('Firestore footer contacts stream fallback:', err);
+    });
+
+    return () => unsubContacts();
+  }, []);
+
+  // Real-time listener for services list from Firestore
+  useEffect(() => {
+    const unsubServices = onSnapshot(collection(db, 'services'), (snapshot) => {
+      if (!snapshot.empty) {
+        const liveServices = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          title: doc.data().title || doc.id
+        }));
+        setServices(liveServices);
+      }
+    }, (err) => {
+      console.warn('Firestore footer services stream fallback:', err);
+    });
+
+    return () => unsubServices();
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -52,7 +96,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
 
           {/* Column 2: Quick Links (2 cols) */}
           <div className="lg:col-span-2 space-y-3">
-            <h4 className="font-heading text-xs font-bold text-white uppercase tracking-widest text-cyan-400">
+            <h4 className="font-heading text-xs font-bold uppercase tracking-widest text-cyan-400">
               Quick Links
             </h4>
             <ul className="space-y-2 text-xs font-mono">
@@ -72,11 +116,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
 
           {/* Column 3: Services (3 cols) */}
           <div className="lg:col-span-3 space-y-3">
-            <h4 className="font-heading text-xs font-bold text-white uppercase tracking-widest text-cyan-400">
+            <h4 className="font-heading text-xs font-bold uppercase tracking-widest text-cyan-400">
               Digital Services
             </h4>
             <ul className="space-y-2 text-xs font-mono">
-              {SERVICES_DATA.map((srv) => (
+              {services.map((srv) => (
                 <li key={srv.id}>
                   <a
                     href="#services"
@@ -92,11 +136,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
 
           {/* Column 4: Direct Leadership Contacts (3 cols) */}
           <div className="lg:col-span-3 space-y-3">
-            <h4 className="font-heading text-xs font-bold text-white uppercase tracking-widest text-cyan-400">
+            <h4 className="font-heading text-xs font-bold uppercase tracking-widest text-cyan-400">
               Direct Contact
             </h4>
             <div className="space-y-3">
-              {CONTACT_PERSONS.map((person) => (
+              {contacts.map((person) => (
                 <div key={person.name} className="p-3 rounded-xl bg-slate-900/80 border border-cyan-500/20 text-xs">
                   <p className="font-semibold text-white">{person.name}</p>
                   <div className="flex items-center gap-2 mt-2">
@@ -135,21 +179,21 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <button
               onClick={() => setLegalModal('privacy')}
-              className="hover:text-cyan-300 transition-colors"
+              className="hover:text-cyan-300 transition-colors cursor-pointer"
             >
               Privacy Policy
             </button>
             <span className="text-slate-700">•</span>
             <button
               onClick={() => setLegalModal('terms')}
-              className="hover:text-cyan-300 transition-colors"
+              className="hover:text-cyan-300 transition-colors cursor-pointer"
             >
               Terms & Conditions
             </button>
             <span className="text-slate-700">•</span>
             <button
               onClick={() => setLegalModal('disclaimer')}
-              className="hover:text-cyan-300 transition-colors"
+              className="hover:text-cyan-300 transition-colors cursor-pointer"
             >
               Risk Disclaimer
             </button>
@@ -159,7 +203,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
           <button
             onClick={scrollToTop}
             id="back-to-top-btn"
-            className="p-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-950 hover:text-white transition-all shadow-[0_0_10px_rgba(0,242,254,0.1)]"
+            className="p-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-950 hover:text-white transition-all shadow-[0_0_10px_rgba(0,242,254,0.1)] cursor-pointer"
             aria-label="Back to top"
           >
             <ChevronUp className="w-4 h-4" />
