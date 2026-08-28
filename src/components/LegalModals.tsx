@@ -24,10 +24,15 @@ export const LegalModals: React.FC<LegalModalProps> = ({ type, onClose }) => {
   if (!type) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      <div onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+      {/* Backdrop */}
+      <div 
+        onClick={onClose} 
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
+      />
 
-      <div className="relative z-10 w-full max-w-2xl rounded-2xl glass-card-elevated border border-cyan-500/40 p-6 sm:p-8 shadow-[0_0_50px_rgba(0,242,254,0.15)] my-8 max-h-[85vh] overflow-y-auto">
+      {/* Modal Dialog */}
+      <div className="relative z-10 w-full max-w-2xl rounded-2xl glass-card-elevated border border-cyan-500/40 p-6 sm:p-8 shadow-[0_0_50px_rgba(0,242,254,0.15)] my-8 max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between pb-4 border-b border-cyan-500/20 mb-6">
           <div className="flex items-center gap-3">
             {type === 'privacy' && <Shield className="w-5 h-5 text-cyan-400" />}
@@ -43,7 +48,8 @@ export const LegalModals: React.FC<LegalModalProps> = ({ type, onClose }) => {
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white"
+            className="p-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -102,7 +108,7 @@ export const LegalModals: React.FC<LegalModalProps> = ({ type, onClose }) => {
         <div className="mt-8 pt-4 border-t border-cyan-500/20 flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-semibold hover:bg-cyan-500/30"
+            className="px-5 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-semibold hover:bg-cyan-500/30 transition-colors cursor-pointer"
           >
             I Understand
           </button>
