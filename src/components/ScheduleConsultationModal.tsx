@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { createConsultation } from '../lib/firestoreService';
-import { X, Calendar, CheckCircle2, AlertCircle, Loader2, Sparkles, Clock, Phone, Mail, User } from 'lucide-react';
+import { X, Calendar, CheckCircle2, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 
 interface ScheduleConsultationModalProps {
   isOpen: boolean;
@@ -24,6 +24,32 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
 
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Handle ESC key press to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  // Sync user profile data if user state changes
+  useEffect(() => {
+    if (user && !formData.fullName && !formData.email) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: user.displayName || prev.fullName,
+        email: user.email || prev.email,
+      }));
+    }
+  }, [user]);
 
   if (!isOpen) return null;
 
@@ -70,17 +96,17 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[#020713]/85 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-[#020713]/85 backdrop-blur-md transition-opacity cursor-pointer"
         onClick={onClose}
       />
 
       {/* Modal Card */}
       <div
         id="schedule-consultation-card"
-        className="relative w-full max-w-lg bg-[#060e22] border border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(0,242,254,0.15)] overflow-hidden z-10 my-8 text-left"
+        className="relative w-full max-w-lg bg-[#060e22] border border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(0,242,254,0.15)] overflow-hidden z-10 my-8 text-left animate-in zoom-in-95 duration-200"
       >
         {/* Header */}
         <div className="p-5 border-b border-cyan-500/20 flex items-center justify-between bg-slate-900/60">
@@ -93,13 +119,14 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
                 Book Executive Consultation
               </h3>
               <p className="text-xs font-mono text-cyan-400/80">
-                Direct Session with Muhammad Shazil & Saad Attari
+                Direct Session with Executive Leadership
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"
+            className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
@@ -121,7 +148,7 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-400 to-sky-400 text-black text-xs font-mono font-bold hover:brightness-110"
+                className="px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-400 to-sky-400 text-black text-xs font-mono font-bold hover:brightness-110 cursor-pointer"
               >
                 Done
               </button>
@@ -138,7 +165,7 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   placeholder="Your Full Name"
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400 font-light"
                 />
               </div>
 
@@ -153,7 +180,7 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="name@company.com"
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400 font-light"
                   />
                 </div>
                 <div>
@@ -166,7 +193,7 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="e.g. 03234196252"
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400 font-light"
                   />
                 </div>
               </div>
@@ -198,7 +225,7 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
                   value={formData.preferredDate}
                   onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
                   placeholder="e.g. Next Tuesday 3:00 PM PKT / ASAP"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400 font-light"
                 />
               </div>
 
@@ -211,7 +238,7 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Briefly state your current bottlenecks, target roadmap, or questions..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400 resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-cyan-500/25 text-xs text-white focus:outline-none focus:border-cyan-400 resize-none font-light"
                 />
               </div>
 
@@ -225,7 +252,7 @@ export const ScheduleConsultationModal: React.FC<ScheduleConsultationModalProps>
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-black font-mono font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(0,242,254,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-black font-mono font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(0,242,254,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {status === 'loading' ? (
                   <>
