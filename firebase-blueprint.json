@@ -1,0 +1,130 @@
+{
+  "entities": {
+    "inquiry": {
+      "title": "Client Inquiry",
+      "description": "Project inquiry or direct service proposal submitted by a prospective client or enterprise partner.",
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Full name of the inquiring party"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 120,
+          "description": "Official contact email address"
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 30,
+          "description": "Contact telephone or WhatsApp number"
+        },
+        "service": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Requested digital service or technology domain"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 2000,
+          "description": "Detailed project requirements and specifications"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "reviewed", "in_progress", "completed", "archived"],
+          "description": "Current workflow status of the inquiry"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the inquiry was logged"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Optional authenticated client user ID"
+        },
+        "userEmail": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Authenticated user email if logged in"
+        }
+      },
+      "required": ["fullName", "email", "phone", "service", "message", "status", "createdAt"]
+    },
+    "consultation": {
+      "title": "Strategy Consultation",
+      "description": "Direct strategy consultation request for digital transformation, trading systems, or enterprise software.",
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Client full name"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 120,
+          "description": "Client email"
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 30,
+          "description": "Client phone number"
+        },
+        "preferredTopic": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Consultation focus topic"
+        },
+        "preferredDate": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 50,
+          "description": "Preferred schedule date or timeframe"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Additional context or notes"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["scheduled", "completed", "cancelled"],
+          "description": "Consultation booking status"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Authenticated user ID"
+        }
+      },
+      "required": ["fullName", "email", "phone", "preferredTopic", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/inquiries/{inquiryId}": {
+      "schema": "inquiry",
+      "description": "Collection storing project inquiries submitted from the website."
+    },
+    "/consultations/{consultationId}": {
+      "schema": "consultation",
+      "description": "Collection storing scheduled direct leadership consultations."
+    }
+  }
+}
