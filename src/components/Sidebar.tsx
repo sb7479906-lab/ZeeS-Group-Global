@@ -49,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection }) => {
               key={item.id}
               href={item.href}
               id={`sidebar-${item.id}`}
-              className={`group relative p-2.5 rounded-xl transition-all duration-300 flex items-center justify-center ${
+              className={`group relative p-2.5 rounded-xl transition-all duration-300 flex items-center justify-center cursor-pointer ${
                 isActive
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_15px_rgba(0,242,254,0.3)]'
                   : 'text-slate-400 hover:text-cyan-300 hover:bg-cyan-950/40 hover:border-cyan-500/20 border border-transparent'
