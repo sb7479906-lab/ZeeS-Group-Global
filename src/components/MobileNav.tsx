@@ -34,6 +34,7 @@ interface MobileNavProps {
   activeSection: string;
   onOpenContact: () => void;
   onOpenPortal: () => void;
+  onNavigate?: (sectionId: string) => void;
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -53,7 +54,8 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   onClose,
   activeSection,
   onOpenContact,
-  onOpenPortal
+  onOpenPortal,
+  onNavigate
 }) => {
   const [contacts, setContacts] = useState<ContactPerson[]>(CONTACT_PERSONS);
 
@@ -82,13 +84,25 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     };
   }, [isOpen]);
 
+  const handleNavClick = (sectionId: string) => {
+    onClose();
+    if (onNavigate) {
+      onNavigate(sectionId);
+    } else {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   // Primary items for the persistent bottom navigation bar
   const bottomBarItems = [
-    { id: 'home', label: 'Home', href: '#home', icon: Home },
-    { id: 'services', label: 'Services', href: '#services', icon: Layers },
-    { id: 'growth-engine', label: 'Growth', href: '#growth-engine', icon: TrendingUp },
-    { id: 'portfolio', label: 'Work', href: '#portfolio', icon: Briefcase },
-    { id: 'contact', label: 'Contact', href: '#contact', icon: Send }
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'services', label: 'Services', icon: Layers },
+    { id: 'growth-engine', label: 'Growth', icon: TrendingUp },
+    { id: 'portfolio', label: 'Work', icon: Briefcase },
+    { id: 'contact', label: 'Contact', icon: Send }
   ];
 
   return (
@@ -103,9 +117,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           return (
-            <a
+            <button
               key={item.id}
-              href={item.href}
+              onClick={() => handleNavClick(item.id)}
               className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all duration-200 cursor-pointer ${
                 isActive
                   ? 'text-cyan-300 font-semibold scale-105'
@@ -117,7 +131,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               {isActive && (
                 <span className="w-1.5 h-0.5 bg-cyan-400 rounded-full mt-0.5 shadow-[0_0_5px_#00f2fe]" />
               )}
-            </a>
+            </button>
           );
         })}
       </nav>
@@ -165,11 +179,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                 const IconComponent = iconMap[item.icon] || Home;
                 const isActive = activeSection === item.id;
                 return (
-                  <a
+                  <button
                     key={item.id}
-                    href={item.href}
-                    onClick={onClose}
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium tracking-wide transition-all cursor-pointer ${
+                    onClick={() => handleNavClick(item.id)}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium tracking-wide transition-all cursor-pointer text-left ${
                       isActive
                         ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(0,242,254,0.2)]'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
@@ -180,7 +193,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                       <span>{item.label}</span>
                     </div>
                     <ArrowUpRight className="w-3.5 h-3.5 text-slate-500" />
-                  </a>
+                  </button>
                 );
               })}
             </div>
