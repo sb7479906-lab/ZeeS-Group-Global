@@ -1,12 +1,9 @@
 {
-  "projectId": "zees-global-environment",
-  "appId": "1:1040517613538:web:0151b110bbc10d7b2edbbb",
-  "apiKey": "AIzaSyB8IepGW8g7qZ3mZ-abap51wW3GTCRjw-o",
-  "authDomain": "zees-global-environment.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-zeesgroupglobal-7aea2ad0-3a69-4069-a31f-4885d25ed19f",
-  "storageBucket": "zees-global-environment.firebasestorage.app",
-  "messagingSenderId": "1040517613538",
-  "measurementId": "",
-  "oAuthClientId": "1040517613538-7ugak7ng96n7d0j1kurceqj48m3kpv6v.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "apiKey": "AIzaSyA0a7L8pazHtWb_2h8rK9RfsPxYKlKCBPw",
+  "authDomain": "zeesg-roup-global.firebaseapp.com",
+  "projectId": "zeesg-roup-global",
+  "storageBucket": "zeesg-roup-global.firebasestorage.app",
+  "messagingSenderId": "653798645674",
+  "appId": "1:653798645674:web:8a83861430c65a5da915d3",
+  "measurementId": "G-R7NQCC4CHY"
 }
