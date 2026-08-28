@@ -60,6 +60,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   return (
     <div
       id="loading-screen"
+      role="status"
+      aria-live="polite"
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020713] transition-opacity duration-700 ${
         isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
