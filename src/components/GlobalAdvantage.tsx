@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GLOBAL_ADVANTAGES } from '../data/companyData';
 import { AmbientGlow } from './AmbientGlow';
 import {
@@ -11,6 +11,16 @@ import {
   Sparkles,
   LucideIcon
 } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+interface AdvantageItem {
+  number: string;
+  title: string;
+  highlight: string;
+  description: string;
+  icon: string;
+}
 
 const iconMap: Record<string, LucideIcon> = {
   Globe,
@@ -22,6 +32,21 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 export const GlobalAdvantage: React.FC = () => {
+  const [advantages, setAdvantages] = useState<AdvantageItem[]>(GLOBAL_ADVANTAGES);
+
+  // Real-time Firestore Stream for Global Advantages
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'company_info', 'advantages'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().items) {
+        setAdvantages(docSnap.data().items as AdvantageItem[]);
+      }
+    }, (error) => {
+      console.warn('Firestore global advantage stream fallback:', error);
+    });
+
+    return () => unsub();
+  }, []);
+
   return (
     <section id="global-advantage" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <AmbientGlow variant="section" position="split" />
@@ -46,7 +71,7 @@ export const GlobalAdvantage: React.FC = () => {
 
         {/* 6 Advantages Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {GLOBAL_ADVANTAGES.map((adv) => {
+          {advantages.map((adv) => {
             const IconComponent = iconMap[adv.icon] || Globe;
             return (
               <div
