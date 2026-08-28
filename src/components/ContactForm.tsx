@@ -171,7 +171,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ preselectedService = '
               });
               setStatus('idle');
             }}
-            className="px-5 py-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-cyan-300 text-xs font-mono hover:bg-cyan-950/50 transition-colors"
+            className="px-5 py-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-cyan-300 text-xs font-mono hover:bg-cyan-950/50 transition-colors cursor-pointer"
           >
             Send Another Inquiry
           </button>
@@ -275,7 +275,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ preselectedService = '
               id="whatsapp-direct-check"
               checked={sendToWhatsApp}
               onChange={(e) => setSendToWhatsApp(e.target.checked)}
-              className="w-4 h-4 rounded bg-slate-900 border-cyan-500/40 text-cyan-400 focus:ring-cyan-400"
+              className="w-4 h-4 rounded bg-slate-900 border-cyan-500/40 text-cyan-400 focus:ring-cyan-400 cursor-pointer"
             />
             <label htmlFor="whatsapp-direct-check" className="text-xs font-mono text-slate-300 cursor-pointer">
               Also launch direct WhatsApp chat with this message
@@ -295,7 +295,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ preselectedService = '
             type="submit"
             id="submit-contact-form-btn"
             disabled={status === 'loading'}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400 hover:from-cyan-300 hover:to-sky-200 text-black font-mono font-bold text-xs sm:text-sm tracking-wider shadow-[0_0_25px_rgba(0,242,254,0.35)] hover:shadow-[0_0_35px_rgba(0,242,254,0.6)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400 hover:from-cyan-300 hover:to-sky-200 text-black font-mono font-bold text-xs sm:text-sm tracking-wider shadow-[0_0_25px_rgba(0,242,254,0.35)] hover:shadow-[0_0_35px_rgba(0,242,254,0.6)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {status === 'loading' ? (
               <>
