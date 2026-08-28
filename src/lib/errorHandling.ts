@@ -26,23 +26,40 @@ export interface FirestoreErrorInfo {
   };
 }
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+export class CustomFirestoreError extends Error {
+  info: FirestoreErrorInfo;
+
+  constructor(info: FirestoreErrorInfo) {
+    super(info.error);
+    this.name = 'FirestoreError';
+    this.info = info;
+  }
+}
+
+export function handleFirestoreError(
+  error: unknown,
+  operationType: OperationType,
+  path: string | null
+): never {
+  const currentUser = auth.currentUser;
+
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
+    operationType,
+    path,
     authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData?.map((provider) => ({
+      userId: currentUser?.uid || null,
+      email: currentUser?.email || null,
+      emailVerified: currentUser?.emailVerified || false,
+      isAnonymous: currentUser?.isAnonymous || false,
+      tenantId: currentUser?.tenantId || null,
+      providerInfo: currentUser?.providerData?.map((provider) => ({
         providerId: provider.providerId,
         email: provider.email,
       })) || [],
     },
-    operationType,
-    path,
   };
-  console.error('Firestore Error:', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+
+  console.error('[Firestore Security/Operation Exception]:', errInfo);
+  throw new CustomFirestoreError(errInfo);
 }
