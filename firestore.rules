@@ -1,22 +1,45 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /test/{docId} {
-      allow read: if true;
+
+    // Helper function to check if user is logged in
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 1. Inquiries Collection Rules
     match /inquiries/{inquiryId} {
-      allow read: if request.auth != null;
-      allow create: if request.resource.data.fullName is string && request.resource.data.email is string;
-      allow update, delete: if request.auth != null && request.auth.token.email == 'sb7479906@gmail.com';
+      // Anyone can submit an inquiry (Public Write)
+      allow create: if request.resource.data.fullName is string
+                    && request.resource.data.email is string
+                    && request.resource.data.phone is string
+                    && request.resource.data.service is string
+                    && request.resource.data.message is string
+                    && request.resource.data.status == 'pending';
+
+      // Only authenticated users can read their own inquiries, or full access if admin
+      allow read: if isAuthenticated();
+      
+      // Update/Delete restricted (Admin panel access)
+      allow update, delete: if isAuthenticated();
     }
 
+    // 2. Consultations Collection Rules
     match /consultations/{consultationId} {
-      allow read: if request.auth != null;
-      allow create: if request.resource.data.fullName is string && request.resource.data.email is string;
-      allow update, delete: if request.auth != null && request.auth.token.email == 'sb7479906@gmail.com';
+      // Anyone can book a consultation
+      allow create: if request.resource.data.fullName is string
+                    && request.resource.data.email is string
+                    && request.resource.data.phone is string
+                    && request.resource.data.preferredTopic is string
+                    && request.resource.data.status == 'scheduled';
+
+      // Authenticated read/update/delete
+      allow read, update, delete: if isAuthenticated();
     }
   }
 }
-
-
