@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CONTACT_PERSONS } from '../data/companyData';
 import { ContactForm } from './ContactForm';
 import { AmbientGlow } from './AmbientGlow';
@@ -6,19 +6,39 @@ import {
   Send,
   Phone,
   MessageCircle,
-  Mail,
   Clock,
-  ShieldCheck,
-  Globe2,
-  Sparkles,
-  ArrowUpRight
+  ShieldCheck
 } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+interface ContactPerson {
+  name: string;
+  role: string;
+  phone: string;
+  whatsappUrl: string;
+}
 
 interface ContactProps {
   preselectedService?: string;
 }
 
 export const Contact: React.FC<ContactProps> = ({ preselectedService }) => {
+  const [contacts, setContacts] = useState<ContactPerson[]>(CONTACT_PERSONS);
+
+  // Real-time listener for contact leadership details from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'company_info', 'contacts'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().persons) {
+        setContacts(docSnap.data().persons as ContactPerson[]);
+      }
+    }, (error) => {
+      console.warn('Firestore contact stream fallback to default company data:', error);
+    });
+
+    return () => unsub();
+  }, []);
+
   return (
     <section id="contact" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <AmbientGlow variant="section" position="top" />
@@ -50,7 +70,7 @@ export const Contact: React.FC<ContactProps> = ({ preselectedService }) => {
                 Direct Technical Leadership
               </span>
 
-              {CONTACT_PERSONS.map((person, idx) => (
+              {contacts.map((person, idx) => (
                 <div
                   key={person.name}
                   id={`contact-card-${idx}`}
