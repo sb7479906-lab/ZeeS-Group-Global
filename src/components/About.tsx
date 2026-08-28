@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AmbientGlow } from './AmbientGlow';
-import { Lightbulb, Globe2, HeartHandshake, CheckCircle2, ShieldCheck, ArrowRight, Zap, Target } from 'lucide-react';
+import { Lightbulb, Globe2, HeartHandshake, CheckCircle2, ShieldCheck, Zap, Target } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
-export const About: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'architecture' | 'mission' | 'values'>('architecture');
+interface Pillar {
+  id: string;
+  title: string;
+  tag: string;
+  desc: string;
+  iconName?: string;
+  points: string[];
+}
 
-  const pillars = [
+interface AboutData {
+  title: string;
+  subtitle: string;
+  description: string;
+  pillars: Pillar[];
+  architectureLayers: { layer: string; title: string; desc: string }[];
+  missionText: string;
+  missionFooter: string;
+  values: { title: string; desc: string }[];
+}
+
+const DEFAULT_ABOUT_DATA: AboutData = {
+  title: 'About',
+  subtitle: 'ZeeS Group Global',
+  description: 'ZeeS Group Global is a technology-focused digital brand dedicated to developing modern websites, e-commerce platforms, digital marketing solutions, online infrastructure and innovative digital services.',
+  pillars: [
     {
       id: 'innovation',
       title: 'Innovation',
       tag: 'Next-Gen Technology',
       desc: 'Modern digital experiences built around innovation, high-speed architectures, and progressive technologies that keep our clients steps ahead.',
-      icon: Lightbulb,
       points: ['Ultra-fast modern frameworks', 'Micro-interactions & fluid UX', 'AI-assisted workflow enhancements']
     },
     {
@@ -19,7 +41,6 @@ export const About: React.FC = () => {
       title: 'Global Vision',
       tag: 'Scalable Ecosystems',
       desc: 'Technology designed with scalable global ambitions, enabling seamless cross-border commerce, global infrastructure, and multi-market adaptability.',
-      icon: Globe2,
       points: ['International payment gateways', 'Edge CDN & cloud reliability', 'Multi-regional DNS & localization']
     },
     {
@@ -27,10 +48,54 @@ export const About: React.FC = () => {
       title: 'Customer Focus',
       tag: 'Strategic Alignment',
       desc: 'Solutions meticulously aligned with customer requirements and business objectives, engineered for measurable returns and sustainable partnerships.',
-      icon: HeartHandshake,
       points: ['Direct technical leadership', 'Transparent roadmap execution', 'Continuous maintenance & growth']
     }
-  ];
+  ],
+  architectureLayers: [
+    { layer: 'LAYER 01', title: 'Digital Core Infrastructure', desc: 'Resilient cloud hosting, secure DNS routing, SSL compliance, and scalable containerized deployments.' },
+    { layer: 'LAYER 02', title: 'Application Experience', desc: 'Custom web applications, e-commerce portals, interactive UI/UX design, and frictionless mobile interfaces.' },
+    { layer: 'LAYER 03', title: 'Growth & Amplification', desc: 'Search engine dominance, algorithmic SMM campaigns, conversion optimization, and market intelligence.' }
+  ],
+  missionText: 'Our global mission is to empower ambitious founders, enterprises, and innovators with high-impact digital products. We bridge the divide between visionary business ideas and world-class digital execution through reliable engineering, transparent communication, and relentless performance focus.',
+  missionFooter: 'Operating globally with dedicated personal leadership from inception to launch.',
+  values: [
+    { title: 'Full Transparency & Source Rights', desc: 'Clean documentation, clear scoping, and 100% intellectual property handover.' },
+    { title: 'Security-First Engineering', desc: 'Sanitized inputs, strict CSP, API shielding, and zero-trust authentication.' }
+  ]
+};
+
+const getIcon = (id: string) => {
+  switch (id) {
+    case 'innovation':
+      return Lightbulb;
+    case 'global-vision':
+      return Globe2;
+    case 'customer-focus':
+    default:
+      return HeartHandshake;
+  }
+};
+
+export const About: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'architecture' | 'mission' | 'values'>('architecture');
+  const [aboutData, setAboutData] = useState<AboutData>(DEFAULT_ABOUT_DATA);
+
+  // Real-time listener to fetch updated company overview from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'company_info', 'overview'), (docSnap) => {
+      if (docSnap.exists()) {
+        const liveData = docSnap.data() as Partial<AboutData>;
+        setAboutData((prev) => ({
+          ...prev,
+          ...liveData
+        }));
+      }
+    }, (error) => {
+      console.warn('Firestore real-time sync fallback to default about data:', error);
+    });
+
+    return () => unsub();
+  }, []);
 
   return (
     <section id="about" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -45,19 +110,18 @@ export const About: React.FC = () => {
           </div>
 
           <h2 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-wide mb-6">
-            About <span className="cyber-gradient-text">ZeeS Group Global</span>
+            {aboutData.title} <span className="cyber-gradient-text">{aboutData.subtitle}</span>
           </h2>
 
           <p className="text-base sm:text-lg text-slate-300 font-light leading-relaxed">
-            ZeeS Group Global is a technology-focused digital brand dedicated to developing modern websites,
-            e-commerce platforms, digital marketing solutions, online infrastructure and innovative digital services.
+            {aboutData.description}
           </p>
         </div>
 
         {/* 3 Core Visual Pillars */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-16">
-          {pillars.map((pillar) => {
-            const Icon = pillar.icon;
+          {aboutData.pillars.map((pillar) => {
+            const IconComponent = getIcon(pillar.id);
             return (
               <div
                 key={pillar.id}
@@ -70,7 +134,7 @@ export const About: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <div className="p-3.5 rounded-xl bg-gradient-to-br from-cyan-950 to-[#060e22] border border-cyan-500/40 text-cyan-300 shadow-[0_0_15px_rgba(0,242,254,0.2)] group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(0,242,254,0.4)] transition-all duration-300">
-                      <Icon className="w-6 h-6 stroke-[2.2]" />
+                      <IconComponent className="w-6 h-6 stroke-[2.2]" />
                     </div>
                     <span className="text-[10px] font-mono tracking-widest text-cyan-400/70 uppercase px-2.5 py-1 rounded bg-cyan-950/40 border border-cyan-500/20">
                       {pillar.tag}
@@ -137,60 +201,37 @@ export const About: React.FC = () => {
           {/* Tab Content Panels */}
           {activeTab === 'architecture' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-slate-900/60 border border-cyan-500/15">
-                <span className="text-[10px] font-mono text-cyan-400">LAYER 01</span>
-                <h4 className="font-heading text-sm font-bold text-white mt-1 mb-2">Digital Core Infrastructure</h4>
-                <p className="text-xs text-slate-400">
-                  Resilient cloud hosting, secure DNS routing, SSL compliance, and scalable containerized deployments.
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-900/60 border border-cyan-500/15">
-                <span className="text-[10px] font-mono text-cyan-400">LAYER 02</span>
-                <h4 className="font-heading text-sm font-bold text-white mt-1 mb-2">Application Experience</h4>
-                <p className="text-xs text-slate-400">
-                  Custom web applications, e-commerce portals, interactive UI/UX design, and frictionless mobile interfaces.
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-900/60 border border-cyan-500/15">
-                <span className="text-[10px] font-mono text-cyan-400">LAYER 03</span>
-                <h4 className="font-heading text-sm font-bold text-white mt-1 mb-2">Growth & Amplification</h4>
-                <p className="text-xs text-slate-400">
-                  Search engine dominance, algorithmic SMM campaigns, conversion optimization, and market intelligence.
-                </p>
-              </div>
+              {aboutData.architectureLayers.map((layer, idx) => (
+                <div key={idx} className="p-4 rounded-xl bg-slate-900/60 border border-cyan-500/15">
+                  <span className="text-[10px] font-mono text-cyan-400">{layer.layer}</span>
+                  <h4 className="font-heading text-sm font-bold text-white mt-1 mb-2">{layer.title}</h4>
+                  <p className="text-xs text-slate-400">{layer.desc}</p>
+                </div>
+              ))}
             </div>
           )}
 
           {activeTab === 'mission' && (
             <div className="p-4 rounded-xl bg-slate-900/60 border border-cyan-500/15 text-sm text-slate-300 leading-relaxed font-light">
-              <p className="mb-3">
-                Our global mission is to empower ambitious founders, enterprises, and innovators with high-impact digital products.
-                We bridge the divide between visionary business ideas and world-class digital execution through reliable engineering,
-                transparent communication, and relentless performance focus.
-              </p>
+              <p className="mb-3">{aboutData.missionText}</p>
               <div className="flex items-center gap-2 text-xs font-mono text-cyan-300">
                 <Zap className="w-4 h-4 text-cyan-400" />
-                <span>Operating globally with dedicated personal leadership from inception to launch.</span>
+                <span>{aboutData.missionFooter}</span>
               </div>
             </div>
           )}
 
           {activeTab === 'values' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-cyan-500/15 flex items-start gap-3">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5" />
-                <div>
-                  <h5 className="font-heading text-xs font-bold text-white">Full Transparency & Source Rights</h5>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Clean documentation, clear scoping, and 100% intellectual property handover.</p>
+              {aboutData.values.map((val, idx) => (
+                <div key={idx} className="p-3.5 rounded-xl bg-slate-900/60 border border-cyan-500/15 flex items-start gap-3">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5" />
+                  <div>
+                    <h5 className="font-heading text-xs font-bold text-white">{val.title}</h5>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{val.desc}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-cyan-500/15 flex items-start gap-3">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5" />
-                <div>
-                  <h5 className="font-heading text-xs font-bold text-white">Security-First Engineering</h5>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Sanitized inputs, strict CSP, API shielding, and zero-trust authentication.</p>
-                </div>
-              </div>
+              ))}
             </div>
           )}
         </div>
