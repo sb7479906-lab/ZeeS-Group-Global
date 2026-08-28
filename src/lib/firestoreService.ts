@@ -50,7 +50,7 @@ export async function createInquiry(data: Omit<InquiryRecord, 'id'>): Promise<st
       phone: data.phone.trim(),
       service: data.service,
       message: data.message.trim(),
-      status: 'pending',
+      status: 'pending' as const,
       createdAt: data.createdAt || new Date().toISOString(),
       ...(data.userId ? { userId: data.userId } : {}),
       ...(data.userEmail ? { userEmail: data.userEmail } : {}),
@@ -59,6 +59,7 @@ export async function createInquiry(data: Omit<InquiryRecord, 'id'>): Promise<st
     return newDocRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, `${collectionPath}/${newDocRef.id}`);
+    throw error;
   }
 }
 
@@ -74,7 +75,7 @@ export async function createConsultation(data: Omit<ConsultationRecord, 'id'>): 
       preferredTopic: data.preferredTopic,
       preferredDate: data.preferredDate || 'Earliest Available',
       notes: data.notes || '',
-      status: 'scheduled',
+      status: 'scheduled' as const,
       createdAt: data.createdAt || new Date().toISOString(),
       ...(data.userId ? { userId: data.userId } : {}),
     };
@@ -82,6 +83,7 @@ export async function createConsultation(data: Omit<ConsultationRecord, 'id'>): 
     return newDocRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, `${collectionPath}/${newDocRef.id}`);
+    throw error;
   }
 }
 
@@ -106,7 +108,7 @@ export function subscribeToInquiries(
         id: docSnap.id,
         ...(docSnap.data() as Omit<InquiryRecord, 'id'>),
       }));
-      // Sort newest first
+      // Client-side sorting (newest first)
       items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       onData(items);
     },
@@ -128,6 +130,7 @@ export async function updateInquiryStatus(
     await updateDoc(doc(db, 'inquiries', inquiryId), { status });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
+    throw error;
   }
 }
 
@@ -138,5 +141,6 @@ export async function deleteInquiryRecord(inquiryId: string): Promise<void> {
     await deleteDoc(doc(db, 'inquiries', inquiryId));
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, path);
+    throw error;
   }
 }
