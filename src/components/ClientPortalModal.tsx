@@ -52,7 +52,7 @@ export const ClientPortalModal: React.FC<ClientPortalModalProps> = ({ isOpen, on
       } else if (errorObj?.code !== 'auth/popup-closed-by-user' && errorObj?.code !== 'auth/cancelled-popup-request') {
         setAuthErrorNotice(errorObj?.message || 'Authentication could not be completed. Please try again.');
       }
-    } font-sans finally {
+    } finally {
       setIsSigningIn(false);
     }
   };
