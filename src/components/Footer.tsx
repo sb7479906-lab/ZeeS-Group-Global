@@ -25,9 +25,10 @@ interface ServiceItem {
 
 interface FooterProps {
   onOpenContact: () => void;
+  onNavigate?: (sectionId: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenContact, onNavigate }) => {
   const [legalModal, setLegalModal] = useState<'privacy' | 'terms' | 'disclaimer' | null>(null);
   const [contacts, setContacts] = useState<ContactPerson[]>(CONTACT_PERSONS);
   const [services, setServices] = useState<ServiceItem[]>(
@@ -64,7 +65,21 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
     return () => unsubServices();
   }, []);
 
+  const handleNavClick = (sectionId: string) => {
+    if (onNavigate) {
+      onNavigate(sectionId);
+    } else {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   const scrollToTop = () => {
+    if (onNavigate) {
+      onNavigate('home');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -78,9 +93,12 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-12 border-b border-cyan-500/15">
           {/* Column 1: Brand & Overview (4 cols) */}
           <div className="lg:col-span-4 space-y-4">
-            <a href="#home" className="inline-block">
+            <button 
+              onClick={() => handleNavClick('home')}
+              className="inline-block text-left cursor-pointer"
+            >
               <ZeeSLogo variant="footer" />
-            </a>
+            </button>
 
             <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed max-w-sm">
               Next-generation digital solutions, technology and global business services.
@@ -102,13 +120,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
             <ul className="space-y-2 text-xs font-mono">
               {NAVIGATION_ITEMS.slice(0, 6).map((item) => (
                 <li key={item.id}>
-                  <a
-                    href={item.href}
-                    className="text-slate-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5"
+                  <button
+                    onClick={() => handleNavClick(item.id)}
+                    className="text-slate-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                   >
                     <span className="w-1 h-1 rounded-full bg-cyan-500/40" />
                     <span>{item.label}</span>
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -122,13 +140,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
             <ul className="space-y-2 text-xs font-mono">
               {services.map((srv) => (
                 <li key={srv.id}>
-                  <a
-                    href="#services"
-                    className="text-slate-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5"
+                  <button
+                    onClick={() => handleNavClick('services')}
+                    className="text-slate-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                   >
                     <span className="w-1 h-1 rounded-full bg-cyan-500/40" />
                     <span>{srv.title}</span>
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
