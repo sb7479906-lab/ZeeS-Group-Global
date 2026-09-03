@@ -44,9 +44,10 @@ const iconMap: Record<string, LucideIcon> = {
 interface HeroProps {
   onOpenContact: () => void;
   onOpenConsultation?: () => void;
+  onNavigate?: (sectionId: string) => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
+export const Hero: React.FC<HeroProps> = ({ onOpenContact, onNavigate }) => {
   const globeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [heroData, setHeroData] = useState<HeroData>(DEFAULT_HERO_DATA);
 
@@ -70,6 +71,17 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
 
     return () => unsub();
   }, []);
+
+  const handleSectionClick = (sectionId: string) => {
+    if (onNavigate) {
+      onNavigate(sectionId);
+    } else {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   // High-tech interactive digital globe rendering
   useEffect(() => {
@@ -99,7 +111,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
     const phi = Math.PI * (3 - Math.sqrt(5));
 
     for (let i = 0; i < numPoints; i++) {
-      const y = 1 - (i / (numPoints - 1)) * 2; // y goes from 1 to -1
+      const y = 1 - (i / (numPoints - 1)) * 2;
       const radiusAtY = Math.sqrt(1 - y * y);
       const theta = phi * i;
 
@@ -147,13 +159,11 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
 
       // Project and sort 3D globe points
       const projected = points.map((p) => {
-        // Rotate around Y axis
         const cosR = Math.cos(rotation);
         const sinR = Math.sin(rotation);
         const rotX = p.x * cosR - p.z * sinR;
         const rotZ = p.x * sinR + p.z * cosR;
 
-        // Add subtle X-axis tilt
         const tilt = 0.35;
         const cosT = Math.cos(tilt);
         const sinT = Math.sin(tilt);
@@ -173,13 +183,12 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
         };
       });
 
-      // Sort by Z for proper depth
       projected.sort((a, b) => a.z - b.z);
 
       // Draw connecting network lines for close points
       for (let i = 0; i < projected.length; i++) {
         const p1 = projected[i];
-        if (p1.z < 0) continue; // connect front facing points only
+        if (p1.z < 0) continue;
 
         for (let j = i + 1; j < projected.length; j++) {
           const p2 = projected[j];
@@ -209,7 +218,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
         ctx.globalAlpha = p.alpha;
         ctx.fill();
 
-        // Extra glow for close front nodes
         if (p.z > globeRadius * 0.4) {
           ctx.beginPath();
           ctx.arc(p.screenX, p.screenY, p.size * 2.2, 0, Math.PI * 2);
@@ -282,23 +290,23 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5 w-full max-w-lg mb-14">
           {/* 1. Explore Services */}
-          <a
-            href="#services"
+          <button
+            onClick={() => handleSectionClick('services')}
             id="hero-explore-services-btn"
             className="group relative overflow-hidden px-6 py-3.5 rounded-xl text-xs sm:text-sm font-mono font-bold tracking-wider text-black bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400 hover:from-cyan-300 hover:to-sky-200 shadow-[0_0_25px_rgba(0,242,254,0.4)] hover:shadow-[0_0_35px_rgba(0,242,254,0.7)] transition-all duration-300 flex items-center gap-2 active:scale-95 cursor-pointer"
           >
             <span>Explore Services</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </a>
+          </button>
 
           {/* 2. View Portfolio */}
-          <a
-            href="#portfolio"
+          <button
+            onClick={() => handleSectionClick('portfolio')}
             id="hero-view-portfolio-btn"
             className="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-mono font-semibold tracking-wider text-slate-200 border border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/40 hover:border-cyan-400 hover:text-cyan-300 shadow-[0_0_15px_rgba(0,242,254,0.1)] hover:shadow-[0_0_25px_rgba(0,242,254,0.25)] transition-all duration-300 flex items-center gap-2 cursor-pointer"
           >
             <span>View Portfolio</span>
-          </a>
+          </button>
 
           {/* 3. Contact Us */}
           <button
@@ -320,7 +328,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
                 id={`hero-pillar-${idx}`}
                 className="group relative p-4 rounded-xl glass-card border border-cyan-500/20 hover:border-cyan-400/50 hover:bg-cyan-950/20 transition-all duration-300 text-left overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
               >
-                {/* Accent top line */}
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 
                 <div className="flex items-center gap-2.5 mb-1.5">
@@ -341,15 +348,15 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
       </div>
 
       {/* Down Scroll Indicator */}
-      <a
-        href="#about"
+      <button
+        onClick={() => handleSectionClick('about')}
         id="scroll-down-indicator"
         className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-400 hover:text-cyan-400 transition-colors opacity-70 hover:opacity-100 cursor-pointer"
-        aria-label="Scroll to About Section"
+        aria-label="Navigate to About Section"
       >
         <span className="text-[10px] font-mono tracking-widest uppercase text-cyan-400/80">SCROLL</span>
         <ChevronDown className="w-4 h-4 animate-bounce text-cyan-400" />
-      </a>
+      </button>
     </section>
   );
 };
